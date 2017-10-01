@@ -125,11 +125,17 @@ defmodule Bamboo.SendGridAdapterTest do
     email
     |> Bamboo.SendGridHelper.with_template("a4ca8ac9-3294-4eaf-8edc-335935192b8d")
     |> Bamboo.SendGridHelper.substitute("%foo%", "bar")
+    |> Bamboo.SendGridHelper.custom_arg("target_id", "abc123")
+    |> Bamboo.SendGridHelper.custom_arg("other_tag", "randomKey")
     |> SendGridAdapter.deliver(@config)
 
     assert_receive {:fake_sendgrid, %{params: params}}
     assert params["text"] == " "
     assert Poison.decode(params["x-smtpapi"]) == {:ok, %{
+        "unique_args" => %{
+          "target_id" => "abc123",
+          "other_tag" => "randomKey"
+        },
         "sub" => %{
           "%foo%" => ["bar"]
         },

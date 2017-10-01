@@ -55,6 +55,16 @@ defmodule Bamboo.SendGridHelper do
     end
   end
 
+  def custom_arg(email, arg, value) do
+    if is_binary(arg) do
+      xsmtpapi = Map.get(email.private, @field_name, %{})
+      email
+      |> Email.put_private(@field_name, add_custom_arg(xsmtpapi, arg, value))
+    else
+      raise "expected the arg parameter to be of type binary, got #{arg}"
+    end
+  end
+
   defp set_template(xsmtpapi, template_id) do
     xsmtpapi
     |> Map.merge(%{"filters" => build_template_filter(template_id)})
@@ -64,6 +74,13 @@ defmodule Bamboo.SendGridHelper do
     xsmtpapi
     |> Map.update("sub", %{tag => [value]}, fn substitutions ->
       Map.merge(substitutions, %{tag => [value]})
+    end)
+  end
+
+  defp add_custom_arg(xsmtpapi, arg, value) do
+    xsmtpapi
+    |> Map.update("unique_args", %{arg => value}, fn args ->
+      Map.merge(args, %{arg => value})
     end)
   end
 
